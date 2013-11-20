@@ -114,6 +114,15 @@ limitations under the License.
         the timeline APIs
         <a href="https://developers.google.com/glass/timeline">here</a>.</p>
 
+
+      <form action="/" method="post">
+        <input type="hidden" name="operation" value="insertResponseWithReply">
+        <textarea name="message" class="span4">Message</textarea><br/>
+        <button class="btn btn-block" type="submit">
+          Insert a Response card with reply option
+        </button>
+      </form>
+
       <form action="/" method="post">
         <input type="hidden" name="operation" value="insertItem">
         <textarea name="message" class="span4">Hello World!</textarea><br/>
@@ -124,14 +133,14 @@ limitations under the License.
 
       <form action="/" method="post">
         <input type="hidden" name="operation" value="insertItem">
-        <input type="hidden" name="message" value="Chipotle says 'hi'!">
+        <textarea name="message" class="span4">Hello World!</textarea><br/>
         <input type="hidden" name="imageUrl"
-               value="/static/images/chipotle-tube-640x360.jpg">
+               value="/static/images/marc-benioff-salesforce2012-1443_620x355.jpg">
         <input type="hidden" name="contentType" value="image/jpeg">
 
         <button class="btn btn-block" type="submit">
-          Insert a picture
-          <img class="button-icon" src="/static/images/chipotle-tube-640x360.jpg">
+          Insert a picture with text
+          <img class="button-icon" src="/static/images/marc-benioff-salesforce2012-1443_620x355.jpg">
         </button>
       </form>
       <form action="/" method="post">
@@ -141,8 +150,13 @@ limitations under the License.
       </form>
       <form action="/" method="post">
         <input type="hidden" name="operation" value="insertItemWithAction">
+
+        <input type="hidden" name="imageUrl"
+               value="/static/images/cloudonly.png">
+        <input type="hidden" name="contentType" value="image/jpeg">
         <button class="btn btn-block" type="submit">
-          Insert a card you can reply to
+          Insert a How Can I Help You card
+          <img class="button-icon" src="/static/images/cloudonly.png">
         </button>
       </form>
       <hr>
