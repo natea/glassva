@@ -125,6 +125,7 @@ class MainHandler(webapp2.RequestHandler):
         'insertItem': self._insert_item,
         'insertPaginatedItem': self._insert_paginated_item,
         'insertItemWithAction': self._insert_item_with_action,
+        'insertResponseWithReply': self._insert_response_with_reply_option,
         'insertItemAllUsers': self._insert_item_all_users,
         'insertContact': self._insert_contact,
         'deleteContact': self._delete_contact,
@@ -201,13 +202,67 @@ class MainHandler(webapp2.RequestHandler):
     logging.info('Inserting timeline item')
     body = {
         'creator': {
-            'displayName': 'Your virtual assistant',
-            'id': 'PYTHON_STARTER_PROJECT'
+            'displayName': 'Virtual assistant',
+            'id': 'PYTHON_STARTER_PROJECT',
+            'imageUrls': [
+              'http://cloudanswers-concierge.herokuapp.com/public/img/cloudonly-glass.png'
+            ]
         },
-        'text': 'What can I help you with?',
+        'text': 'How can I help you?',
         'notification': {'level': 'DEFAULT'},
-        'menuItems': [{'action': 'REPLY'}]
+        'menuItems': [
+          {'action': 'REPLY'},
+          {'action': 'TOGGLE_PINNED'}
+        ]
     }
+
+    media_link = self.request.get('imageUrl')
+    if media_link:
+      if media_link.startswith('/'):
+        media_link = util.get_full_url(self, media_link)
+      resp = urlfetch.fetch(media_link, deadline=20)
+      media = MediaIoBaseUpload(
+          io.BytesIO(resp.content), mimetype='image/jpeg', resumable=True)
+    else:
+      media = None
+
+    # self.mirror_service is initialized in util.auth_required.
+    self.mirror_service.timeline().insert(body=body).execute()
+    return 'A timeline item with action has been inserted.'
+
+
+  def _insert_response_with_reply_option(self):
+    """Insert a timeline item user can reply to."""
+    logging.info('Inserting timeline item')
+    body = {
+        'creator': {
+            'displayName': 'Your virtual assistant',
+            'id': 'PYTHON_STARTER_PROJECT',
+            'imageUrls': [
+              'https://cloudanswers-concierge.herokuapp.com/public/img/cloudonly-glass.png'
+            ]
+        },
+        'notification': {'level': 'DEFAULT'},
+        'menuItems': [
+          {'action': 'REPLY'}
+        ]
+    }
+
+    if self.request.get('html') == 'on':
+      body['html'] = [self.request.get('message')]
+    else:
+      body['text'] = self.request.get('message')
+
+    media_link = self.request.get('imageUrl')
+    if media_link:
+      if media_link.startswith('/'):
+        media_link = util.get_full_url(self, media_link)
+      resp = urlfetch.fetch(media_link, deadline=20)
+      media = MediaIoBaseUpload(
+          io.BytesIO(resp.content), mimetype='image/jpeg', resumable=True)
+    else:
+      media = None
+
     # self.mirror_service is initialized in util.auth_required.
     self.mirror_service.timeline().insert(body=body).execute()
     return 'A timeline item with action has been inserted.'
@@ -275,7 +330,14 @@ class MainHandler(webapp2.RequestHandler):
     self.mirror_service.timeline().delete(id=self.request.get('itemId')).execute()
     return 'A timeline item has been deleted.'
 	
+  def post_to_salesforce(self):
+    import requests
+    post_data = {"amount":10000, "service":"writing blog posts"}
 
+    r = requests.post('http://example.com/api', post_data, auth=('user', 'pass'))
+
+    print r.status_code
+    print r.headers['content-type']
 
 MAIN_ROUTES = [
     ('/', MainHandler)
