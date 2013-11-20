@@ -29,6 +29,7 @@ from oauth2client.appengine import StorageByKeyName
 from model import Credentials
 import util
 
+from main_handler import post_to_salesforce
 
 CAT_UTTERANCES = [
     "<em class='green'>Purr...</em>",
@@ -101,20 +102,22 @@ class NotifyHandler(webapp2.RequestHandler):
 
         self.mirror_service.timeline().update(
             id=item['id'], body=item).execute()
-        
+
       elif user_action.get('type') == 'LAUNCH':
         # Grab the spoken text from the timeline card and update the card with
         # an HTML response (deleting the text as well).
         note_text = item.get('text', '');
-        utterance = choice(CAT_UTTERANCES)
+        # utterance = choice(CAT_UTTERANCES)
 
-        item['text'] = None
-        item['html'] = ("<article class='auto-paginate'>" +
-            "<p class='text-auto-size'>" +
-            "Oh, did you say " + note_text + "? " + utterance + "</p>" +
-            "<footer><p>Python Quick Start</p></footer></article>")
+        # item['text'] = None
+        # item['html'] = ("<article class='auto-paginate'>" +
+        #     "<p class='text-auto-size'>" +
+        #     "Oh, did you say " + note_text + "? " + utterance + "</p>" +
+        #     "<footer><p>Python Quick Start</p></footer></article>")
+        # item['menuItems'] = [{ 'action': 'DELETE' }];
+
+        item['text'] = 'Hold on while I look that up...'
         item['menuItems'] = [{ 'action': 'DELETE' }];
-
         self.mirror_service.timeline().update(
             id=item['id'], body=item).execute()
       else:
