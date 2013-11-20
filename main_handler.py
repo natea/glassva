@@ -201,10 +201,10 @@ class MainHandler(webapp2.RequestHandler):
     logging.info('Inserting timeline item')
     body = {
         'creator': {
-            'displayName': 'Python Starter Project',
+            'displayName': 'Your virtual assistant',
             'id': 'PYTHON_STARTER_PROJECT'
         },
-        'text': 'Tell me what you had for lunch :)',
+        'text': 'What can I help you with?',
         'notification': {'level': 'DEFAULT'},
         'menuItems': [{'action': 'REPLY'}]
     }
