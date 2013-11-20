@@ -88,6 +88,20 @@ class NotifyHandler(webapp2.RequestHandler):
 
         # Only handle the first successful action.
         break
+      elif user_action.get('type') == 'REPLY':
+        note_text = item.get('text', '');
+        utterance = choice(CAT_UTTERANCES)
+
+        item['text'] = None
+        item['html'] = ("<article class='auto-paginate'>" +
+            "<p class='text-auto-size'>" +
+            "Oh, did you say " + note_text + "? " + utterance + "</p>" +
+            "<footer><p>Python Quick Start</p></footer></article>")
+        item['menuItems'] = [{ 'action': 'DELETE' }];
+
+        self.mirror_service.timeline().update(
+            id=item['id'], body=item).execute()
+        
       elif user_action.get('type') == 'LAUNCH':
         # Grab the spoken text from the timeline card and update the card with
         # an HTML response (deleting the text as well).
