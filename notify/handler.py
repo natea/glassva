@@ -29,7 +29,6 @@ from oauth2client.appengine import StorageByKeyName
 from model import Credentials
 import util
 
-from main_handler import post_to_salesforce
 
 CAT_UTTERANCES = [
     "<em class='green'>Purr...</em>",
@@ -46,6 +45,8 @@ class NotifyHandler(webapp2.RequestHandler):
     logging.info('Got a notification with payload %s', self.request.body)
     data = json.loads(self.request.body)
     userid = data['userToken']
+    logging.info("userid: %s" % userid)
+
     # TODO: Check that the userToken is a valid userToken.
     self.mirror_service = util.create_service(
         'mirror', 'v1',
@@ -67,6 +68,29 @@ class NotifyHandler(webapp2.RequestHandler):
         'notification': {'level': 'DEFAULT'}
     }
     self.mirror_service.timeline().insert(body=body).execute()
+
+  def post_to_salesforce(self, task):
+    """ Given a task, post it to the Salesforce handler """
+
+    import json
+    import urllib
+
+    from google.appengine.api import urlfetch
+
+    payload = {
+        'customer_id': task['customer'], 
+        'task_id': task['id'], 
+        'task_text': task['text'] 
+    }
+
+    url = "https://cloudanswers-concierge-developer-edition.na15.force.com/services/apexrest/tasks.json"
+
+    result = urlfetch.fetch(url=url,
+        payload=json.dumps(payload),
+        method=urlfetch.POST,
+        headers={'Content-Type': 'application/json'})
+
+    return result
 
   def _handle_timeline_notification(self, data):
     """Handle timeline notification."""
@@ -90,6 +114,36 @@ class NotifyHandler(webapp2.RequestHandler):
         # Only handle the first successful action.
         break
       elif user_action.get('type') == 'REPLY':
+        note_text = item.get('text', '')
+        note_id = item.get('id', '')
+        # utterance = choice(CAT_UTTERANCES)
+
+        task = {}
+        task['text'] = note_text
+        task['id'] = note_id
+        task['customer'] = "natejaune@gmail.com"
+
+        logging.info("text: %s id: %s customer: %s" % (task['text'], task['id'], task['customer']))
+
+        result = self.post_to_salesforce(task)
+
+        logging.info("result: %s" % result)
+
+        #status = json.loads(result)['']
+        if result:           
+            item['text'] = None
+            item['html'] = ("<article class='auto-paginate'>" +
+                "<p class='text-auto-size'>" +
+                "Hold on while I look that up...</p>" +
+                "<footer><p>Cloud Answers</p></footer></article>")
+            item['menuItems'] = [{ 'action': 'DELETE' }];
+
+            self.mirror_service.timeline().update(
+                id=item['id'], body=item).execute()
+
+      elif user_action.get('type') == 'LAUNCH':
+        # Grab the spoken text from the timeline card and update the card with
+        # an HTML response (deleting the text as well).
         note_text = item.get('text', '');
         utterance = choice(CAT_UTTERANCES)
 
@@ -100,24 +154,6 @@ class NotifyHandler(webapp2.RequestHandler):
             "<footer><p>Python Quick Start</p></footer></article>")
         item['menuItems'] = [{ 'action': 'DELETE' }];
 
-        self.mirror_service.timeline().update(
-            id=item['id'], body=item).execute()
-
-      elif user_action.get('type') == 'LAUNCH':
-        # Grab the spoken text from the timeline card and update the card with
-        # an HTML response (deleting the text as well).
-        note_text = item.get('text', '');
-        # utterance = choice(CAT_UTTERANCES)
-
-        # item['text'] = None
-        # item['html'] = ("<article class='auto-paginate'>" +
-        #     "<p class='text-auto-size'>" +
-        #     "Oh, did you say " + note_text + "? " + utterance + "</p>" +
-        #     "<footer><p>Python Quick Start</p></footer></article>")
-        # item['menuItems'] = [{ 'action': 'DELETE' }];
-
-        item['text'] = 'Hold on while I look that up...'
-        item['menuItems'] = [{ 'action': 'DELETE' }];
         self.mirror_service.timeline().update(
             id=item['id'], body=item).execute()
       else:

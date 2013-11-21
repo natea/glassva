@@ -329,15 +329,7 @@ class MainHandler(webapp2.RequestHandler):
     # self.mirror_service is initialized in util.auth_required.
     self.mirror_service.timeline().delete(id=self.request.get('itemId')).execute()
     return 'A timeline item has been deleted.'
-	
-  def post_to_salesforce(self):
-    import requests
-    post_data = {"amount":10000, "service":"writing blog posts"}
 
-    r = requests.post('http://example.com/api', post_data, auth=('user', 'pass'))
-
-    print r.status_code
-    print r.headers['content-type']
 
 MAIN_ROUTES = [
     ('/', MainHandler)
